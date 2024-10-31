@@ -9,26 +9,33 @@ mod cargo_toml;
 mod ssh;
 
 fn main() {
+	// Initialize logging with the trace level.
 	std::env::set_var("RUST_LOG", "trace");
 	env_logger::init();
 	info!("Starting up");
+
+	// Parse CLI arguments.
 	let args = PWPArgs::parse();
+
+	// Establish an SSH connection using the parsed arguments.
 	let mut session = ssh::create_connection(&args).unwrap();
-	if let Some(ref service) = args.service_name
-	{
+
+	// If a service name is provided, attempt to stop the service on the remote server.
+	if let Some(ref service) = args.service_name {
 		debug!("Attempting to stop service: {}", service);
 		let stop_command = format!("sudo systemctl stop {}", service);
 		let output = ssh::execute_command(stop_command, &mut session);
-		match output
-		{
+		match output {
 			Ok(output) => debug!("Output: {}", output),
 			Err(e) => debug!("Error: {}", e),
 		}
 	}
 
+	// If the build flag is set, build the binary using the specified build command.
 	if args.build {
 		warn!("Building binary");
 		debug!("Executing command: {}", args.build_command);
+
 		let build_cmd_parts = &mut args.build_command.split_whitespace();
 		let command_executable = match build_cmd_parts.next() {
 			Some(command) => command,
@@ -40,6 +47,7 @@ fn main() {
 
 		let build_args = &args.build_command[command_executable.len()..];
 
+		// Execute the build command and handle the result.
 		match std::process::Command::new(command_executable)
 			.raw_arg(&build_args)
 			.output()
@@ -59,17 +67,20 @@ fn main() {
 		}
 	}
 
+	// Determine the binary name, either from the arguments or from Cargo.toml.
 	let binary_name = args.binary_name.unwrap_or_else(|| cargo_toml::CargoToml::new("./Cargo.toml").unwrap().name);
 	let binary_path = format!("./target/release/{}", binary_name);
 	let remote_path = format!("/usr/bin/{}", binary_name);
+
+	// Upload the binary to the remote server.
 	ssh::upload_file(binary_path, remote_path, &mut session).unwrap();
-	if let Some(service) = args.service_name
-	{
+
+	// If a service name is provided, attempt to start the service on the remote server.
+	if let Some(service) = args.service_name {
 		debug!("Attempting to start service: {}", service);
 		let start_command = format!("sudo systemctl start {}", service);
 		let output = ssh::execute_command(start_command, &mut session);
-		match output
-		{
+		match output {
 			Ok(output) => debug!("Output: {}", output),
 			Err(e) => debug!("Error: {}", e),
 		}
