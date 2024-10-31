@@ -1,0 +1,13 @@
+[package]
+name = "publish-web-project"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "pwp"
+path = "src/main.rs"
+
+[dependencies]
+clap = "4.5.20"
+progressing = "3.0.2"
+ssh2 = "0.9.4"
