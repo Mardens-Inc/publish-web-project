@@ -21,16 +21,6 @@ fn main() {
 	// Establish an SSH connection using the parsed arguments.
 	let mut session = ssh::create_connection(&args).unwrap();
 
-	match ssh::execute_command("mkdir ~/.local/bin", &mut session) {
-		Ok(_) => info!("Directory created"),
-		Err(e) => {
-			if e.to_string().contains("File exists") {
-				info!("Directory already exists");
-			} else {
-				debug!("Error: {}", e);
-			}
-		},
-	}
 
 	// If a service name is provided, attempt to stop the service on the remote server.
 	if let Some(ref service) = args.service_name {
@@ -86,10 +76,24 @@ fn main() {
 		}
 	}
 
+
 	// Determine the binary name, either from the arguments or from Cargo.toml.
 	let binary_name = args.binary_name.unwrap_or_else(|| cargo_toml::CargoToml::new("./Cargo.toml").unwrap().name);
 	let binary_path = format!("./target/release/{}", binary_name);
-	let remote_path = format!("~/.local/bin/{}", binary_name);
+	let remote_path = format!("/home/{}/.local/bin/", args.username);
+
+
+	match ssh::execute_command(format!("mkdir {}", remote_path), &mut session) {
+		Ok(_) => info!("Directory created"),
+		Err(e) => {
+			if e.to_string().contains("File exists") {
+				info!("Directory already exists");
+			} else {
+				debug!("Error: {}", e);
+			}
+		},
+	}
+
 
 	// Upload the binary to the remote server.
 	ssh::upload_file(binary_path, remote_path, &mut session).unwrap();
