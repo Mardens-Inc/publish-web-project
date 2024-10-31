@@ -1,14 +1,28 @@
-use clap::Args;
+use clap::Parser;
 
-#[derive(Debug, Args)]
+#[derive(Debug, Parser)]
+#[command(
+	version,
+	about = "A cli for automating the publishing process for actix-web projects to the mardens ubuntu server.",
+	name = "Publish Web Project"
+)]
 pub struct PWPArgs {
-	#[clap(short, long)]
+	#[arg(short, long)]
 	pub host: String,
-	#[clap(short, long)]
+	#[arg(short, long)]
+	pub username: String,
+	#[arg(short, long)]
 	pub port: u16,
-	#[clap(short, long)]
-	pub auth_file: String,
-	#[clap(short, long)]
-	pub service_file: Option<String>,
-
+	#[arg(short, long = "auth")]
+	pub auth_file: Option<String>,
+	#[arg(short, long, conflicts_with = "auth")]
+	pub password: Option<String>,
+	#[arg(short, long = "binary")]
+	pub binary_name: Option<String>,
+	#[arg(short, long = "service")]
+	pub service_name: Option<String>,
+	#[arg(short, long)]
+	pub build: bool,
+	#[arg(short, long, default_value = "cargo build --release", requires = "build")]
+	pub build_command: String,
 }
