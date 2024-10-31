@@ -8,7 +8,7 @@ use clap::Parser;
 )]
 pub struct PWPArgs {
 	/// Hostname or IP address of the server
-	#[arg(short, long)]
+	#[arg(short='j', long)]
 	pub host: String,
 
 	/// Username for SSH authentication
