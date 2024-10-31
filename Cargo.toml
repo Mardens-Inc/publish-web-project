@@ -8,6 +8,6 @@ name = "pwp"
 path = "src/main.rs"
 
 [dependencies]
-clap = "4.5.20"
+clap = { version = "4.5.20", features = ["derive", "help", "usage", "suggestions", "wrap_help", "error-context", "color"] }
 progressing = "3.0.2"
 ssh2 = "0.9.4"
