@@ -81,13 +81,13 @@ pub fn upload_file(local_path: impl AsRef<Path>, remote_path: impl AsRef<Path>, 
 /// # Returns
 ///
 /// A result containing the command's output as a `String`, or a boxed `dyn Error` on failure.
-pub fn execute_command(command: String, session: &mut Session) -> Result<String, Box<dyn Error>>
+pub fn execute_command(command: impl AsRef<str>, session: &mut Session) -> Result<String, Box<dyn Error>>
 {
-	debug!("Executing command: `{}`", command);
+	debug!("Executing command: `{}`", command.as_ref());
 
 	// Open a new channel for the command execution.
 	let mut channel = session.channel_session()?;
-	channel.exec(&command)?;
+	channel.exec(&command.as_ref())?;
 
 	// Read the command's output into a string.
 	let mut s = String::new();
