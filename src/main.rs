@@ -11,7 +11,7 @@ mod ssh;
 fn main() {
 	// Parse CLI arguments.
 	let args = PWPArgs::parse();
-	
+
 	// Initialize logging with the trace level.
 	std::env::set_var("RUST_LOG", "trace");
 	env_logger::init();
@@ -24,10 +24,16 @@ fn main() {
 	// If a service name is provided, attempt to stop the service on the remote server.
 	if let Some(ref service) = args.service_name {
 		debug!("Attempting to stop service: {}", service);
-		let stop_command = format!("sudo systemctl stop {}", service);
+		let stop_command = format!("systemctl stop {}", service);
 		let output = ssh::execute_command(stop_command, &mut session);
 		match output {
-			Ok(output) => debug!("Output: {}", output),
+			Ok(output) => {
+				if output.is_empty() {
+					info!("Service started successfully");
+				} else {
+					error!("Service failed to start: {}", output);
+				}
+			},
 			Err(e) => debug!("Error: {}", e),
 		}
 	}
@@ -79,10 +85,16 @@ fn main() {
 	// If a service name is provided, attempt to start the service on the remote server.
 	if let Some(service) = args.service_name {
 		debug!("Attempting to start service: {}", service);
-		let start_command = format!("sudo systemctl start {}", service);
+		let start_command = format!("systemctl start {}", service);
 		let output = ssh::execute_command(start_command, &mut session);
 		match output {
-			Ok(output) => debug!("Output: {}", output),
+			Ok(output) => {
+				if output.is_empty() {
+					info!("Service started successfully");
+				} else {
+					error!("Service failed to start: {}", output);
+				}
+			},
 			Err(e) => debug!("Error: {}", e),
 		}
 	}
