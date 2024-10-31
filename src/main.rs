@@ -9,13 +9,14 @@ mod cargo_toml;
 mod ssh;
 
 fn main() {
+	// Parse CLI arguments.
+	let args = PWPArgs::parse();
+	
 	// Initialize logging with the trace level.
 	std::env::set_var("RUST_LOG", "trace");
 	env_logger::init();
 	info!("Starting up");
 
-	// Parse CLI arguments.
-	let args = PWPArgs::parse();
 
 	// Establish an SSH connection using the parsed arguments.
 	let mut session = ssh::create_connection(&args).unwrap();
