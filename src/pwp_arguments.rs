@@ -16,7 +16,7 @@ pub struct PWPArgs {
 	pub username: String,
 
 	/// Port number for SSH connection
-	#[arg(short, long)]
+	#[arg(short, long, default_value = "22")]
 	pub port: u16,
 
 	/// Path to the authentication file (e.g., private key)
@@ -36,10 +36,10 @@ pub struct PWPArgs {
 	pub service_name: Option<String>,
 
 	/// Flag indicating whether to build before publishing
-	#[arg(short, long)]
+	#[arg(long)]
 	pub build: bool,
 
 	/// Command to build the project (used if 'build' is true)
-	#[arg(short, long, default_value = "cargo build --release", requires = "build")]
+	#[arg(long, default_value = "cargo build --release", requires = "build")]
 	pub build_command: String,
 }
