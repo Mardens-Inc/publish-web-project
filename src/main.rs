@@ -21,44 +21,14 @@ fn main() {
 	// Establish an SSH connection using the parsed arguments.
 	let mut session = ssh::create_connection(&args).unwrap();
 
-
-	// If a service name is provided, attempt to stop the service on the remote server.
-	if let Some(ref service) = args.service_name {
-		debug!("Attempting to stop service: {}", service);
-		let stop_command = format!("systemctl stop {}", service);
-		let output = ssh::execute_command(stop_command, &mut session);
-		match output {
-			Ok(output) => {
-				if output.is_empty() {
-					info!("Service started successfully");
-				} else {
-					error!("Service failed to start: {}", output);
-				}
-			},
-			Err(e) => debug!("Error: {}", e),
-		}
-	}
-
 	// If the build flag is set, build the binary using the specified build command.
 	if args.build {
 		warn!("Building binary");
 		debug!("Executing command: {}", args.build_command);
 
-		let build_cmd_parts = &mut args.build_command.split_whitespace();
-		let command_executable = match build_cmd_parts.next() {
-			Some(command) => command,
-			None => {
-				error!("No executable found in build command: {}", args.build_command);
-				std::process::exit(1);
-			},
-		};
-
-		let build_args = &args.build_command[command_executable.len()..];
-
 		// Execute the build command and handle the result.
-		let build_args = shellwords::split(build_args).unwrap();
-		match Command::new(command_executable)
-			.args(&build_args)
+		match Command::new("cmd")
+			.args(["/C", &args.build_command])
 			.output()
 		{
 			Ok(output) => {
@@ -94,14 +64,33 @@ fn main() {
 		},
 	}
 
+	// If a service name is provided, attempt to stop the service on the remote server.
+	if let Some(ref service) = &args.service_name {
+		debug!("Attempting to stop service: {}", service);
+		let stop_command = format!("sudo systemctl stop {}", service);
+		let output = ssh::execute_command(stop_command, &mut session);
+		match output {
+			Ok(output) => {
+				if output.is_empty() {
+					info!("Service started successfully");
+				} else {
+					error!("Service failed to start: {}", output);
+				}
+			},
+			Err(e) => debug!("Error: {}", e),
+		}
+	}
 
 	// Upload the binary to the remote server.
-	ssh::upload_file(binary_path, remote_path, &mut session).unwrap();
+	match ssh::upload_file(binary_path, format!("{}{}", remote_path, &binary_name), &mut session){
+		Ok(_) => info!("Binary uploaded successfully"),
+		Err(e) => error!("Error uploading binary: {}", e),
+	}
 
 	// If a service name is provided, attempt to start the service on the remote server.
 	if let Some(service) = args.service_name {
 		debug!("Attempting to start service: {}", service);
-		let start_command = format!("systemctl start {}", service);
+		let start_command = format!("sudo systemctl start {}", service);
 		let output = ssh::execute_command(start_command, &mut session);
 		match output {
 			Ok(output) => {
