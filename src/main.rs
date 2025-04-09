@@ -1,8 +1,8 @@
+use std::env::{args, set_current_dir};
 use crate::pwp_arguments::PWPArgs;
 use clap::Parser;
 use log::{debug, error, info, warn, LevelFilter};
 use pretty_env_logger::env_logger;
-use std::path::Path;
 use std::process::Command;
 
 mod cargo_toml;
@@ -22,6 +22,8 @@ fn main() -> Result<()> {
         .filter_level(LevelFilter::Trace)
         .init();
     info!("Starting up");
+    debug!(r#"Set cwd to "{}""#, args.input);
+    set_current_dir(&args.input)?;
 
     let cargo = cargo_toml::CargoToml::new("./Cargo.toml")?;
 
@@ -92,12 +94,12 @@ fn main() -> Result<()> {
             let username = args.username;
             let working_dir = args
                 .working_directory
-                .unwrap_or(format!("/home/{}/.local/{}", username, &binary_name));
+                .unwrap_or(format!("/home/{}/.local/share/{}/", username, &binary_name));
 
             let service_file = ServiceFile::new(
                 cargo.description.unwrap_or(service.clone()),
                 working_dir,
-                binary_path,
+                format!("/home/{}/.local/bin/{}", username, &binary_name),
             );
 
             service_file.install(&service, &mut session)?;

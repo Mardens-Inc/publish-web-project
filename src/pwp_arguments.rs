@@ -8,6 +8,11 @@ use clap::Parser;
 	styles=get_styles(),
 )]
 pub struct PWPArgs {
+    
+    /// The starting directory.
+    #[arg(short, long, default_value = "./")]
+    pub input: String,
+    
     /// Hostname or IP address of the server
     #[arg(short = 'H', long)]
     pub host: String,
