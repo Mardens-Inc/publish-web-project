@@ -10,24 +10,26 @@
 
 This section covers how to use the CLI executable once it is built.
 
-| Short Option | Long Option       | Arguments         | Description                                                     |
-|--------------|-------------------|-------------------|-----------------------------------------------------------------|
-| `-j`         | `--host`          | `<HOST>`          | Hostname or IP address of the server                            |
-| `-u`         | `--username`      | `<USERNAME>`      | Username for SSH authentication                                 |
-| `-p`         | `--port`          | `<PORT>`          | Port number for SSH connection                                  |
-| `-a`         | `--auth-file`     | `<auth-file>`     | Path to the authentication file (e.g., private key)             |
-| `-P`         | `--password`      | `<PASSWORD>`      | Password for SSH authentication (conflicts with auth-file)      |
-| `-b`         | `--binary`        | `<binary>`        | Name of the binary to be published                              |
-| `-s`         | `--service`       | `<service>`       | Name of the systemd service to be managed                       |
-|              | `--build`         |                   | Flag indicating whether to build before publishing              |
-|              | `--build-command` | `<BUILD_COMMAND>` | Command to build the project (default: `cargo build --release`) |
-| `-h`         | `--help`          |                   | Print help information                                          |
-| `-V`         | `--version`       |                   | Print version information                                       |
+| Short Option | Long Option           | Arguments             | Description                                                                               |
+|--------------|-----------------------|-----------------------|-------------------------------------------------------------------------------------------|
+| `-H`         | `--host`              | `<HOST>`              | Hostname or IP address of the server                                                      |
+| `-u`         | `--username`          | `<USERNAME>`          | Username for SSH authentication                                                           |
+| `-p`         | `--port`              | `<PORT>`              | Port number for SSH connection [default: 22]                                              |
+| `-a`         | `--auth`              | `<AUTH_FILE>`         | Path to the authentication file (e.g., private key)                                       |
+| `-P`         | `--password`          | `<PASSWORD>`          | Password for SSH authentication (conflicts with auth_file)                                |
+| `-b`         | `--binary`            | `<BINARY_NAME>`       | Name of the binary to be published                                                        |
+| `-s`         | `--service`           | `<SERVICE_NAME>`      | Name of the systemd service to be managed                                                 |
+|              | `--build`             |                       | Flag indicating whether to build before publishing                                        |
+|              | `--install-service`   |                       | Flag indicating whether to create a linux service                                         |
+|              | `--working-directory` | `<WORKING_DIRECTORY>` | Sets the working directory in the service file, default is the uploaded binary's path     |
+|              | `--build-command`     | `<BUILD_COMMAND>`     | Command to build the project (used if 'build' is true) [default: "cargo build --release"] |
+| `-h`         | `--help`              |                       | Print help                                                                                |
+| `-V`         | `--version`           |                       | Print version                                                                             |
 
 To use the CLI, run it with the appropriate options. For example:
 
 ```sh
-pwp --host 192.168.1.100 --username user --port 22 --auth-file ~/.ssh/id_rsa --binary my_app --service my_service --build
+pwp --host 192.168.1.100 --username user --port 22 --auth ~/.ssh/id_rsa --binary my_app --service my_service --build --install-service
 ```
 
 This command will:
