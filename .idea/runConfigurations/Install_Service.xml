@@ -1,8 +1,8 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Install Service" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
     <option name="buildProfileId" value="dev" />
-    <option name="command" value="run -- -H 192.168.21.209 -u administrator -a C:\Users\drew.chase\.ssh\mss-sshkey_ossh.key -s pwp_test --binary test_project --build --install-service" />
-    <option name="workingDirectory" value="file://$PROJECT_DIR$/test/test_project" />
+    <option name="command" value="run -- -H 192.168.21.209 -u administrator -a C:\Users\drew.chase\.ssh\mss-sshkey_ossh.key -s pwp_test --binary test_project --build --install-service -i &quot;./test/test_project&quot; --build-command &quot;wsl bash -ic 'cargo build --release'&quot;" />
+    <option name="workingDirectory" value="file://$PROJECT_DIR$" />
     <envs />
     <option name="emulateTerminal" value="true" />
     <option name="channel" value="DEFAULT" />
