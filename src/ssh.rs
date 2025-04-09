@@ -1,22 +1,22 @@
+use anyhow::Result;
 use crate::pwp_arguments::PWPArgs;
 use log::debug;
 use ssh2::Session;
-use std::error::Error;
 use std::io::Read;
 use std::net::TcpStream;
 use std::path::Path;
+use toml::to_string;
 
 /// Creates an SSH connection using the provided arguments.
 ///
 /// # Arguments
 ///
-/// * `args` - A reference to `PWPArgs` which contains all required connection parameters.
+/// * `args` - A reference to `PWPArgs`, which contains all required connection parameters.
 ///
 /// # Returns
 ///
-/// A result containing an `ssh2::Session` if successful, or a boxed `dyn Error` on failure.
-pub fn create_connection(args: &PWPArgs) -> Result<Session, Box<dyn Error>>
-{
+/// A result containing an `ssh2::Session` if successful.
+pub fn create_connection(args: &PWPArgs) -> Result<Session> {
 	debug!("Creating connection to {}:{}", args.host, args.port);
 	let host = &args.host;
 	let port = args.port;
@@ -31,11 +31,9 @@ pub fn create_connection(args: &PWPArgs) -> Result<Session, Box<dyn Error>>
 	session.handshake()?;
 
 	// Authenticate using either a public key file or a password.
-	if let Some(auth_file) = &args.auth_file
-	{
+	if let Some(auth_file) = &args.auth_file {
 		session.userauth_pubkey_file(username, None, auth_file.as_ref(), args.password.as_deref())?;
-	} else if let Some(password) = &args.password
-	{
+	} else if let Some(password) = &args.password {
 		session.userauth_password(username, password)?;
 	}
 
@@ -52,25 +50,24 @@ pub fn create_connection(args: &PWPArgs) -> Result<Session, Box<dyn Error>>
 ///
 /// # Returns
 ///
-/// A result indicating success or containing a boxed `dyn Error` on failure.
-pub fn upload_file(local_path: impl AsRef<Path>, remote_path: impl AsRef<Path>, session: &mut Session) -> Result<(), Box<dyn Error>>
-{
+/// A result indicating success.
+pub fn upload_file(local_path: impl AsRef<Path>, remote_path: impl AsRef<Path>, session: &mut Session) -> Result<()> {
 	debug!("Uploading file from {:?} to {:?}", local_path.as_ref(), remote_path.as_ref());
 	let local_path = local_path.as_ref();
 	let remote_path = remote_path.as_ref();
-	
 
 	// Create an SFTP session.
-	let sftp = session.sftp().map_err(|e| format!("Unable to create sftp connection: {:?}", e))?;
+	let sftp = session.sftp().map_err(|e| anyhow::anyhow!("Unable to create sftp connection: {:?}", e))?;
 
 	// Open the remote file for writing.
-	let mut remote_file = sftp.create(remote_path).map_err(|e| format!("Failed to create remote path: {:?} - {:?}", remote_path, e))?;
+	let mut remote_file = sftp.create(remote_path).map_err(|e| anyhow::anyhow!("Failed to create remote path: {:?} - {:?}", remote_path, e))?;
 
 	// Open the local file for reading.
-	let mut local_file = std::fs::File::open(local_path).map_err(|e| format!("Failed to read local file: {:?} - {:?}", local_path, e))?;
+	let mut local_file = std::fs::File::open(local_path).map_err(|e| anyhow::anyhow!("Failed to read local file: {:?} - {:?}", local_path, e))?;
 
 	// Copy the contents of the local file to the remote file.
-	std::io::copy(&mut local_file, &mut remote_file).map_err(|e| format!("Failed to copy file from local filesystem to remote filesystem: {:?} -> {:?} - {:?}", local_path, remote_path, e))?;
+	std::io::copy(&mut local_file, &mut remote_file).map_err(|e| anyhow::anyhow!("Failed to copy file from local filesystem to remote filesystem: {:?} -> {:?} - {:?}", local_path, remote_path, e))?;
+	execute_command(format!(r#"chmod +x "{}""#, remote_path.to_str().unwrap()), session)?;
 	Ok(())
 }
 
@@ -83,9 +80,8 @@ pub fn upload_file(local_path: impl AsRef<Path>, remote_path: impl AsRef<Path>, 
 ///
 /// # Returns
 ///
-/// A result containing the command's output as a `String`, or a boxed `dyn Error` on failure.
-pub fn execute_command(command: impl AsRef<str>, session: &mut Session) -> Result<String, Box<dyn Error>>
-{
+/// A result containing the command's output as a `String`.
+pub fn execute_command(command: impl AsRef<str>, session: &mut Session) -> Result<String> {
 	debug!("Executing command: `{}`", command.as_ref());
 
 	// Open a new channel for the command execution.
