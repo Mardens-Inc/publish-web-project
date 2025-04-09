@@ -103,6 +103,8 @@ impl ServiceFile {
         ssh::upload_file(tmp_file, format!("/etc/systemd/system/{}.service", service_name), ssh_session)?;
         ssh::execute_command("sudo systemctl daemon-reload", ssh_session)?;
         ssh::execute_command(format!("sudo systemctl enable {}", service_name), ssh_session)?;
+        ssh::execute_command(format!(r#"mkdir "{}""#, self.service.working_directory), ssh_session)?;
+        
         
         fs::remove_file(tmp_file)?;
         Ok(())
