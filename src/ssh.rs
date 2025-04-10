@@ -5,7 +5,6 @@ use ssh2::Session;
 use std::io::Read;
 use std::net::TcpStream;
 use std::path::Path;
-use toml::to_string;
 
 /// Creates an SSH connection using the provided arguments.
 ///

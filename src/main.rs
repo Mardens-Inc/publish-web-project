@@ -1,8 +1,8 @@
-use std::env::{args, set_current_dir};
 use crate::pwp_arguments::PWPArgs;
 use clap::Parser;
 use log::{debug, error, info, warn, LevelFilter};
 use pretty_env_logger::env_logger;
+use std::env::set_current_dir;
 use std::process::Command;
 
 mod cargo_toml;
