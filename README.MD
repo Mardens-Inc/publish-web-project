@@ -20,17 +20,19 @@ This section covers how to use the CLI executable once it is built.
 | `-P`         | `--password`          | `<PASSWORD>`          | Password for SSH authentication (conflicts with auth_file)                                                   |
 | `-b`         | `--binary`            | `<BINARY_NAME>`       | Name of the binary to be published                                                                           |
 | `-s`         | `--service`           | `<SERVICE_NAME>`      | Name of the systemd service to be managed                                                                    |
-|              | `--build`             |                       | Flag indicating whether to build before publishing                                                           |
-|              | `--install-service`   |                       | Flag indicating whether to create a linux service                                                            |
-|              | `--working-directory` | `<WORKING_DIRECTORY>` | Sets the working directory in the service file, and the default will be the same path as the uploaded binary |
-|              | `--build-command`     | `<BUILD_COMMAND>`     | Command to build the project (used if 'build' is true) [default: "cargo build --release"]                    |
+| `-B`         | `--build`             |                       | Flag indicating whether to build before publishing                                                           |
+| `-S`         | `--install-service`   |                       | Flag indicating whether to create a linux service                                                            |
+| `-D`         | `--working-directory` | `<WORKING_DIRECTORY>` | Sets the working directory in the service file, and the default will be the same path as the uploaded binary |
+| `-c`         | `--build-command`     | `<BUILD_COMMAND>`     | Command to build the project (used if 'build' is true) [default: "cargo build --release"]                    |
+| `-I`         | `--increment-version` |                       | Flag to increment the cargo version                                                                          |
+| `-t`         | `--tag`               |                       | Flag to create a git tag with the cargo version (requires --increment-version)                               |
 | `-h`         | `--help`              |                       | Print help                                                                                                   |
 | `-V`         | `--version`           |                       | Print version                                                                                                |
 
 To use the CLI, run it with the appropriate options. For example:
 
 ```sh
-pwp.exe --host 192.168.1.100 --username user --port 22 --auth ~/.ssh/id_rsa --binary my_app --service my_service --build --install-service
+pwp.exe --host 192.168.1.100 --username user --port 22 --auth ~/.ssh/id_rsa --binary my_app --service my_service --build --install-service --increment-version --tag
 ```
 
 This command will:
@@ -64,5 +66,5 @@ To build the project for personal use, follow these steps:
    The built executable will be located in the `./target/release/` directory. You can run it by specifying the necessary arguments as shown in the [Usage](#usage) section.
 
 ```sh
-./target/release/pwp --host 192.168.1.100 --username user --port 22 --auth-file ~/.ssh/id_rsa --binary my_app --service my_service --build
+./target/release/pwp --host 192.168.1.100 --username user --port 22 --auth ~/.ssh/id_rsa --binary my_app --service my_service --build --increment-version --tag
 ```
