@@ -1,27 +1,24 @@
+use log::info;
 use std::fs::read_to_string;
-use std::path::Path;
+use std::io::Write;
+use std::path::{Path, PathBuf};
 
 /// Represents the contents of a Cargo.toml file.
+#[derive(serde::Deserialize)]
 pub struct CargoToml {
+    pub(crate) file: Option<PathBuf>,
     /// The name of the cargo package.
     pub name: String,
-    /// The description of the cargo package
+    /// The description of the cargo package.
     pub description: Option<String>,
+    /// The version of the cargo package.
+    pub version: String,
 }
 
 /// Intermediate structure to deserialize the `package` section of Cargo.toml.
 #[derive(serde::Deserialize)]
 struct DefaultCargoToml {
-    package: Package,
-}
-
-/// Structure to represent the package section in Cargo.toml.
-#[derive(serde::Deserialize)]
-struct Package {
-    /// The name of the package.
-    name: String,
-    /// The description of the cargo package
-    description: Option<String>,
+    package: CargoToml,
 }
 
 impl CargoToml {
@@ -34,18 +31,84 @@ impl CargoToml {
     /// # Returns
     ///
     /// * `Result<Self, Box<dyn Error>>` - On success, returns an instance of `CargoToml`.
-    ///    On failure, returns an error wrapped in a `Box<dyn Error>`.
+    ///   On failure, returns an error wrapped in a `Box<dyn Error>`.
     pub fn new(file: impl AsRef<Path>) -> anyhow::Result<Self> {
         // Read the contents of the file.
-        let content = read_to_string(file)?;
+        let content = read_to_string(&file)?;
 
         // Deserialize the TOML content into `DefaultCargoToml`.
         let data: DefaultCargoToml = toml::from_str(&content)?;
 
         // Construct and return a `CargoToml` instance.
         Ok(Self {
+            file: Some(file.as_ref().to_owned()),
             name: data.package.name,
             description: data.package.description,
+            version: data.package.version,
         })
+    }
+
+    pub fn increment_version(&mut self) -> anyhow::Result<()> {
+        let mut version_parts = self.version.split('.');
+        let mut major: u32 = version_parts
+            .next()
+            .ok_or(anyhow::Error::msg(
+                "Failed to parse the major string to u32",
+            ))?
+            .parse()
+            .unwrap_or(0);
+        let mut minor: u32 = version_parts
+            .next()
+            .ok_or(anyhow::Error::msg(
+                "Failed to parse the minor string to u32",
+            ))?
+            .parse()
+            .unwrap_or(0);
+        let mut patch: u32 = version_parts
+            .next()
+            .ok_or(anyhow::Error::msg(
+                "Failed to parse the patch string to u32",
+            ))?
+            .parse()
+            .unwrap_or(0);
+        if patch + 1 > 9 {
+            patch = 0;
+            if minor + 1 > 9 {
+                minor = 0;
+                major = major.wrapping_add(1);
+            } else {
+                minor += 1;
+            }
+        } else {
+            patch += 1;
+        }
+        self.version = format!("{}.{}.{}", major, minor, patch);
+        info!("New version: {}", self.version);
+        if let Some(file) = &self.file {
+            let file_content = read_to_string(file)?;
+            let mut cargo_toml: toml::Value = toml::from_str(&file_content)?;
+            cargo_toml["package"]["version"] = toml::Value::String(self.version.clone());
+            let mut file = std::fs::File::create(file)?;
+            file.write_all(toml::to_string(&cargo_toml)?.as_bytes())?;
+        }
+
+        Ok(())
+    }
+
+    pub fn create_tag(&self) -> anyhow::Result<()> {
+        let tag_name = format!("v{}", self.version);
+        let tag_message = format!("Version {}", self.version);
+        let tag_result = std::process::Command::new("git")
+            .arg("tag")
+            .arg("-a")
+            .arg(&tag_name)
+            .arg("-m")
+            .arg(&tag_message)
+            .output()?;
+        
+        if !tag_result.status.success() {
+            return Err(anyhow::Error::msg("Failed to create tag!"));
+        }
+        Ok(())
     }
 }
