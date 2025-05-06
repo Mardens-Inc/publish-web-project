@@ -25,7 +25,13 @@ fn main() -> Result<()> {
     debug!(r#"Set cwd to "{}""#, args.input);
     set_current_dir(&args.input)?;
 
-    let cargo = cargo_toml::CargoToml::new("./Cargo.toml")?;
+    let mut cargo = cargo_toml::CargoToml::new("./Cargo.toml")?;
+    if args.increment_version {
+        cargo.increment_version()?;
+        if args.create_tag {
+            cargo.create_tag()?;
+        }
+    }
 
     // Establish an SSH connection using the parsed arguments.
     let mut session = ssh::create_connection(&args)?;
