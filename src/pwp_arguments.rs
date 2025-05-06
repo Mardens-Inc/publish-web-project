@@ -5,6 +5,7 @@ use clap::Parser;
 	version,
 	about = "A CLI for automating the publishing process for Actix-web projects to the Mardens Ubuntu server.",
 	name = "Publish Web Project",
+    author = "Drew Chase",
 	styles=get_styles(),
 )]
 pub struct PWPArgs {
@@ -42,21 +43,29 @@ pub struct PWPArgs {
     pub service_name: Option<String>,
 
     /// Flag indicating whether to build before publishing
-    #[arg(long)]
+    #[arg(short='B',long)]
     pub build: bool,
 
     /// Flag indicating whether to create a linux service.
-    #[arg(long, requires = "service_name")]
+    #[arg(short='S',long, requires = "service_name")]
     pub install_service: bool,
 
     /// Sets the working directory in the service file,
     /// and the default will be the same path as the uploaded binary.
-    #[arg(long, requires = "install_service")]
+    #[arg(short='D',long, requires = "install_service")]
     pub working_directory: Option<String>,
 
     /// Command to build the project (used if 'build' is true)
-    #[arg(long, default_value = "cargo build --release", requires = "build")]
+    #[arg(short='c', long, default_value = "cargo build --release", requires = "build")]
     pub build_command: String,
+
+    /// Flag to increment the cargo version
+    #[arg(short='I',long="increment-version")]
+    pub increment_version: bool,
+
+    /// Flag to create a git tag with the cargo version
+    #[arg(short='t',long="tag", requires = "increment_version")]
+    pub create_tag: bool,
 }
 
 fn get_styles() -> clap::builder::Styles {
