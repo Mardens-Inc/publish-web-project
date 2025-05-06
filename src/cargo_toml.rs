@@ -1,4 +1,4 @@
-use log::info;
+use log::debug;
 use std::fs::read_to_string;
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -83,13 +83,14 @@ impl CargoToml {
             patch += 1;
         }
         self.version = format!("{}.{}.{}", major, minor, patch);
-        info!("New version: {}", self.version);
+        debug!("New version: {}", self.version);
         if let Some(file) = &self.file {
             let file_content = read_to_string(file)?;
-            let mut cargo_toml: toml::Value = toml::from_str(&file_content)?;
-            cargo_toml["package"]["version"] = toml::Value::String(self.version.clone());
+            let version_pattern = regex::Regex::new(r#"(?m)^version\s*=\s*"[^"]*""#)?;
+            let new_version = format!(r#"version = "{}""#, self.version);
+            let updated_content = version_pattern.replace(&file_content, new_version);
             let mut file = std::fs::File::create(file)?;
-            file.write_all(toml::to_string(&cargo_toml)?.as_bytes())?;
+            file.write_all(updated_content.as_bytes())?;
         }
 
         Ok(())
@@ -105,7 +106,7 @@ impl CargoToml {
             .arg("-m")
             .arg(&tag_message)
             .output()?;
-        
+
         if !tag_result.status.success() {
             return Err(anyhow::Error::msg("Failed to create tag!"));
         }
