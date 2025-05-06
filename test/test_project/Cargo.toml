@@ -1,7 +1,9 @@
-[dependencies]
-
 [package]
-description = "A test app that will stay open until killed"
+name = "test_project" # name side comment
+version = "0.1.2" # A version side comment
 edition = "2024"
-name = "test_project"
-version = "0.1.1"
+# Super description here:
+description = "A test app that will stay open until killed"
+
+[dependencies]
+serde = {version = "1.0.219"}
