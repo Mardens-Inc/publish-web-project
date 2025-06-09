@@ -75,6 +75,3 @@ To build the project for personal use, follow these steps:
 4. **Run the Executable:**
    The built executable will be located in the `./target/release/` directory. You can run it by specifying the necessary arguments as shown in the [Usage](#usage) section.
 
-```sh
-./target/release/pwp --host 192.168.1.100 --username user --port 22 --auth ~/.ssh/id_rsa --binary my_app --service my_service --build --increment-version --tag
-```
