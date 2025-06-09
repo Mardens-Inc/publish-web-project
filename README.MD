@@ -32,7 +32,17 @@ This section covers how to use the CLI executable once it is built.
 To use the CLI, run it with the appropriate options. For example:
 
 ```sh
-pwp.exe --host 192.168.1.100 --username user --port 22 --auth ~/.ssh/id_rsa --binary my_app --service my_service --build --install-service --increment-version --tag
+pwp.exe \
+   --host 192.168.1.100 \
+   --username user \
+   --port 22 \
+   --auth ~/.ssh/id_rsa \
+   --binary my_app \
+   --service my_service \
+   --build \
+   --install-service \
+   --increment-version \
+   --tag
 ```
 
 This command will:
